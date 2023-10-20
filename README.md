@@ -182,12 +182,17 @@ function getCookie(c_name) {
 
 ## Page.Load Event Setup
 1. Populate your DataGrid with data ([see above](#database-connector-and-datagrid))
-2. To initialise the DataGrid with some columns that are hidden by default
+2. To initialise the DataGrid with hidden columns
    1. Drag a *List* action into the script (type: Any)
-   2. Enter the names of the columns you want to hide by default
+   2. Enter the names of the columns you want to hide by default into the List Value property (see example below)
 3. Drag the *ColumnDisplay* script into the script and complete the input parameters
    1. DataGridClass: The class you assigned to the *DataGrid* (e.g datagrid-hide-cols)
    2. InitialHiddenColumns: Leave blank or select your *List* containing the initial hidden columns from the dropdown
+
+List Value Example:
+```
+= ["FirstName","last name"]
+```
 
 # Styling
 Various elements in this module can be styled using the two CSS files in this repo
