@@ -1,6 +1,6 @@
 # DataGrid Show / Hide Columns
 
-DataGrids may contain a long list of fields and can get very wide. This repo contains a module that allows users to hide columns they don't want to see. Customisations to the column display are automatically saved per visitor and reapplied when the visitor returns. 
+DataGrids sometimes contain a long list of fields and can get very wide. This repo contains a module that allows users to hide columns they don't want to see. Customisations to the column display are automatically saved per visitor and reapplied when the visitor returns. 
 
 https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf547320-b77f-49bd-b03b-df9fa9ca2d6f
 
