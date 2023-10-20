@@ -1,0 +1,86 @@
+.hidden-column {
+    display: none;
+}
+
+.column-display-selector-container {
+    position: relative;
+    overflow: hidden;
+    height: var(--column-selector-height);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+
+    & .column-display-checkboxlist {
+        position: absolute;
+        z-index: 10;
+        top: calc(var(--column-selector-height) - 1px);
+        display: grid;
+        grid-template-columns: 0;
+        opacity: 0;
+        transition: grid-template-columns .2s, opacity 0.2s ;
+        margin-top: 0;
+
+        > div {
+            padding-right: var(--column-selector-padding-right);
+            padding-left: var(--column-selector-padding-left);
+            border-left: 1px solid var(--column-selector-border-color);
+            border-right: 1px solid var(--column-selector-border-color);
+            box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 1px, rgba(0, 0, 0, 0.07) 0px 2px 2px, rgba(0, 0, 0, 0.07) 0px 4px 4px, rgba(0, 0, 0, 0.07) 0px 8px 8px, rgba(0, 0, 0, 0.07) 0px 16px 16px;
+            background-color: var(--column-selector-background-color);
+        }
+        > div:first-child {
+            padding-top: var(--column-selector-padding-top);
+            border-top: 1px solid var(--column-selector-border-color);
+        }
+        > div:last-child {
+            padding-bottom: var(--column-selector-padding-bottom);
+            border-bottom: 1px solid var(--column-selector-border-color);
+        }
+    }
+
+    & .column-display-selector-header {
+        background-color: var(--column-selector-background-color);
+        border: 1px solid var(--column-selector-border-color);
+        height: var(--column-selector-height);
+        cursor: pointer;
+        user-select: none;
+        padding-right: 20px;
+        padding-left: 8px;
+        color: var(--column-selector-font-color);
+        font-size: var(--column-selector-font-size);
+        display: flex;
+        align-items: center;
+        z-index: 11;
+    }
+
+    & .column-display-selector-header:after {
+        content: "\25BE";
+        position: absolute;
+        right: 4px;
+        color: var(--column-selector-font-color);
+        font-size: 20px;
+        height: 20px;
+        width: 20px;
+        transition: transform .2s;
+    }
+    
+    & .checkbox label {
+        white-space: nowrap;
+        color: var(--column-selector-font-color);
+        font-size: var(--column-selector-font-size);
+    }
+}
+    
+.expand.column-display-selector-container {
+    overflow: visible;
+    & .column-display-selector-header {
+        border-bottom: 1px solid transparent;
+    }
+    & .column-display-selector-header:after {
+        transform: rotate(180deg) translate(3px, 0px);
+    }
+    & .column-display-checkboxlist {
+        grid-template-columns: 1fr;
+        opacity: 1;
+    }
+}
