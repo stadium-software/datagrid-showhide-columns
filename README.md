@@ -190,7 +190,7 @@ function getCookie(c_name) {
    2. InitialHiddenColumns: Leave blank or select your *List* containing the initial hidden columns from the dropdown
 
 List Value Example:
-```javascript
+```json
 = ["FirstName","last name"]
 ```
 
