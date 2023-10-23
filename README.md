@@ -20,7 +20,7 @@ https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf5
    2. InitialHiddenColumns
 3. Drag a *JavaScript* action into the script
 4. Add the Javascript below into the JavaScript code property
-```
+```javascript
 let colsParameter = ~.Parameters.Input.InitialHiddenColumns;
 let dgParameter = ~.Parameters.Input.DataGridClass;
 let dgClass = "." + dgParameter;
@@ -190,7 +190,7 @@ function getCookie(c_name) {
    2. InitialHiddenColumns: Leave blank or select your *List* containing the initial hidden columns from the dropdown
 
 List Value Example:
-```
+```javascript
 = ["FirstName","last name"]
 ```
 
@@ -203,7 +203,7 @@ Various elements in this module can be styled using the two CSS files in this re
 1. Create a folder called "CSS" inside of your Embedded Files in your application
 2. Drag the two CSS files from this repo [*column-display-selector-variables.css*](column-display-selector-variables.css) and [*column-display-selector.css*](column-display-selector.css) into that folder
 3. Paste the link tags below into the *head* property of your application
-```
+```html
 <link rel="stylesheet" href="{EmbeddedFiles}/CSS/column-display-selector.css">
 <link rel="stylesheet" href="{EmbeddedFiles}/CSS/column-display-selector-variables.css">
 ``` 
