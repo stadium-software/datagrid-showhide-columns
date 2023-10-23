@@ -37,22 +37,34 @@ let arrHeadings = formatHeadings(headingElements);
 let displayHeadings = formatDisplayHeadings(headingElements);
 let hideCols = [];
 if (colsParameter) hideCols = (colsParameter = colsParameter.map((i) => i.toLowerCase().replaceAll(" ", "")));
+let options = {
+        childList: true,
+        subtree: true,
+    },
+    observer = new MutationObserver(initPage);
 
-showColumnSelector();
-for (let i = 0; i < hideCols.length; i++) {
-    hideColumn(getColumnNumber(hideCols[i]));
+observer.observe(table, options);
+initPage();
+
+function initPage() {
+    if (table.querySelectorAll("tbody tr").length < 2) return false;
+    observer.disconnect();
+    showColumnSelector();
+    for (let i = 0; i < hideCols.length; i++) {
+        hideColumn(getColumnNumber(hideCols[i]));
+    }
+    document.querySelector(".column-display-selector-header").addEventListener("click", function(e){
+        e.target.closest(".column-display-selector-container").classList.toggle("expand");
+    });
+    document.body.addEventListener("click", function(e){
+        if (!e.target.closest(".column-display-selector-container")) {
+            let allDD = document.querySelectorAll(".column-display-selector-container");
+            for (let i=0;i<allDD.length;i++){
+                allDD[i].classList.remove("expand");
+            }
+        }
+    });
 }
-document.querySelector(".column-display-selector-header").addEventListener("click", function(e){
- e.target.closest(".column-display-selector-container").classList.toggle("expand");
-});
-document.body.addEventListener("click", function(e){
- if (!e.target.closest(".column-display-selector-container")) {
-  let allDD = document.querySelectorAll(".column-display-selector-container");
-  for (let i=0;i<allDD.length;i++){
-   allDD[i].classList.remove("expand");
-  }
- }
-});
 
 function hideColumn(no) {
     if (no == 0) return;
