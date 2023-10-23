@@ -41,12 +41,12 @@ let options = {
         childList: true,
         subtree: true,
     },
-    observer = new MutationObserver(initPage);
+    observer = new MutationObserver(initDataGridHide);
 
 observer.observe(table, options);
-initPage();
+initDataGridHide();
 
-function initPage() {
+function initDataGridHide() {
     if (table.querySelectorAll("tbody tr").length < 2) return false;
     observer.disconnect();
     showColumnSelector();
