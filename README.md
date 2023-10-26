@@ -190,7 +190,8 @@ function getCookie(c_name) {
 
 ## Page Setup
 1. Drag a *DataGrid* control to the page ([see above](#database-connector-and-datagrid))
-2. Add a class of your choosing to the *DataGrid* *Classes* property (e.g datagrid-hide-cols)
+2. Add a class of your choosing to the *DataGrid* *Classes* property that uniquely identifies this DataGrid on this page (e.g datagrid-hide-cols)
+3. Note: If multiple editable DataGrids are shown on one page, each DataGrid must have a unique classname
 
 ## Page.Load Event Setup
 1. Populate your DataGrid with data ([see above](#database-connector-and-datagrid))
@@ -198,7 +199,7 @@ function getCookie(c_name) {
    1. Drag a *List* action into the script (type: Any)
    2. Enter the names of the columns you want to hide by default into the List Value property (see example below)
 3. Drag the *ColumnDisplay* script into the script and complete the input parameters
-   1. DataGridClass: The class you assigned to the *DataGrid* (e.g datagrid-hide-cols)
+   1. DataGridClass: The unique class you assigned to the *DataGrid* (e.g datagrid-hide-cols)
    2. InitialHiddenColumns: Leave blank or select your *List* containing the initial hidden columns from the dropdown
 
 List Value Example:
