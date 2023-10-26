@@ -5,7 +5,7 @@ DataGrids sometimes contain a long list of fields and can get very wide. This re
 https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf547320-b77f-49bd-b03b-df9fa9ca2d6f
 
 # Version 
-1.0
+1.1 Added logic to detect uniqueness of DataGrid class on page
 
 ## Application Setup
 1. Check the *Enable Style Sheet* checkbox in the application properties
@@ -21,17 +21,24 @@ https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf5
 3. Drag a *JavaScript* action into the script
 4. Add the Javascript below into the JavaScript code property
 ```javascript
+let dgClassName = "." + ~.Parameters.Input.DataGridClass;
+let dg = document.querySelectorAll(dgClassName);
+if (dg.length == 0) {
+    dg = document.querySelector(".data-grid-container");
+} else if (dg.length > 1) {
+    console.error("The class '" + dgClassName + "' is assigned to multiple DataGrids. DataGrids using this script must have unique classnames");
+    return false;
+} else { 
+    dg = dg[0];
+}
+let table = dg.querySelector("table");
 let colsParameter = ~.Parameters.Input.InitialHiddenColumns;
-let dgParameter = ~.Parameters.Input.DataGridClass;
-let dgClass = "." + dgParameter;
 const pathname = window.location.pathname;
-let cookieCols = getCookie(pathname + "-" + dgParameter + "-hidden-columns");
+let cookieCols = getCookie(pathname + "-" + dgClassName + "-hidden-columns");
 if (cookieCols !== null) {
     colsParameter = cookieCols.split(",");
 }
 const capitalize = (str) => `${str.charAt(0).toUpperCase()}${str.slice(1)}`;
-let table = document.querySelector(dgClass + " table");
-if (!table) table = document.querySelector(".data-grid-container");
 let headingElements = table.querySelectorAll("thead th a");
 let arrHeadings = formatHeadings(headingElements);
 let displayHeadings = formatDisplayHeadings(headingElements);
@@ -75,7 +82,7 @@ function hideColumn(no) {
     for (let i = 0; i < cells.length; i++) {
         cells[i].classList.add("hidden-column");
     }
-    createCookie(pathname + "-" + dgParameter + "-hidden-columns", getHiddenColsArray(), 30);
+    createCookie(pathname + "-" + dgClassName + "-hidden-columns", getHiddenColsArray(), 30);
 }
 function showColumn(no) {
     if (no == 0) return;
@@ -86,7 +93,7 @@ function showColumn(no) {
     for (let i = 0; i < cells.length; i++) {
         cells[i].classList.remove("hidden-column");
     }
-    createCookie(pathname + "-" + dgParameter + "-hidden-columns", getHiddenColsArray(), 30);
+    createCookie(pathname + "-" + dgClassName + "-hidden-columns", getHiddenColsArray(), 30);
 }
 function getColumnNumber(title) {
     return arrHeadings.indexOf(title) + 1;
