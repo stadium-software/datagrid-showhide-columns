@@ -4,6 +4,10 @@ DataGrids sometimes contain a long list of fields and can get very wide. This re
 
 https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf547320-b77f-49bd-b03b-df9fa9ca2d6f
 
+## Sample applications
+This repo contains one Stadium 6.7 application
+[DataGridShowHideColumns.sapz](Stadium6/DataGridShowHideColumns.sapz?raw=true)
+
 # Version 
 1.1 Added logic to detect uniqueness of DataGrid class on page
 
