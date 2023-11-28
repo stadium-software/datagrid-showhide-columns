@@ -10,6 +10,7 @@ This repo contains one Stadium 6.7 application
 
 # Version 
 1.1 Added logic to detect uniqueness of DataGrid class on page
+1.2 Fixed Selectable column & hidden column bugs
 
 ## Application Setup
 1. Check the *Enable Style Sheet* checkbox in the application properties
@@ -25,7 +26,7 @@ This repo contains one Stadium 6.7 application
 3. Drag a *JavaScript* action into the script
 4. Add the Javascript below into the JavaScript code property
 ```javascript
-/* Stadium Script Version 1.1 */
+/* Stadium Script Version 1.2 */
 let dgClassName = "." + ~.Parameters.Input.DataGridClass;
 let dg = document.querySelectorAll(dgClassName);
 if (dg.length == 0) {
@@ -44,7 +45,7 @@ if (cookieCols !== null) {
     colsParameter = cookieCols.split(",");
 }
 const capitalize = (str) => `${str.charAt(0).toUpperCase()}${str.slice(1)}`;
-let headingElements = table.querySelectorAll("thead th a");
+let headingElements = table.querySelectorAll("thead th");
 let arrHeadings = formatHeadings(headingElements);
 let displayHeadings = formatDisplayHeadings(headingElements);
 let hideCols = [];
@@ -54,9 +55,8 @@ let options = {
         subtree: true,
     },
     observer = new MutationObserver(initDataGridHide);
-
-observer.observe(table, options);
 initDataGridHide();
+observer.observe(table, options);
 
 function initDataGridHide() {
     if (table.querySelectorAll("tbody tr").length < 2) return false;
@@ -116,6 +116,9 @@ function showColumnSelector() {
     checkboxList.classList.add("control-container", "check-box-list-container", "column-display-checkboxlist");
     checkboxListContainer.appendChild(checkboxList);
     for (let i = 0; i < headingElements.length; i++) {
+        if (headingElements[i].style.display == "none" || headingElements[i].querySelector("input[type=checkbox")) {
+            continue;
+         }
         let labelText = displayHeadings[i];
         let checkboxID = arrHeadings[i];
         let checkboxContainer = document.createElement("div");
