@@ -26,7 +26,7 @@ This repo contains one Stadium 6.7 application
 3. Drag a *JavaScript* action into the script
 4. Add the Javascript below into the JavaScript code property
 ```javascript
-/* Stadium Script Version 1.2 */
+/* Stadium Script Version 1.2 https://github.com/stadium-software/datagrid-showhide-columns */
 let dgClassName = "." + ~.Parameters.Input.DataGridClass;
 let dg = document.querySelectorAll(dgClassName);
 if (dg.length == 0) {
