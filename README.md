@@ -293,7 +293,7 @@ function reorderList(list) {
 1. Populate your DataGrid with data ([see above](#database-connector-and-datagrid))
 2. To initialise the DataGrid with hidden columns
    1. Drag a *List* action into the script (type: Any)
-   2. Enter the column numbers you want to hide (starting at 1 and including hidden columns)
+   2. Enter the column numbers you want to hide (start counting at 1 and include hidden columns)
 
 List Value Example:
 ```json
