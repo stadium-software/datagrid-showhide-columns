@@ -1,4 +1,3 @@
-/* CSS version 1.0 https: //github.com/stadium-software/datagrid-showhide-columns */
 .hidden-column {
     display: none;
 }
@@ -22,12 +21,29 @@
         margin-top: 0;
 
         > div {
+            display: flex;
             padding-right: var(--column-selector-padding-right);
             padding-left: var(--column-selector-padding-left);
             border-left: 1px solid var(--column-selector-border-color);
             border-right: 1px solid var(--column-selector-border-color);
             box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 1px, rgba(0, 0, 0, 0.07) 0px 2px 2px, rgba(0, 0, 0, 0.07) 0px 4px 4px, rgba(0, 0, 0, 0.07) 0px 8px 8px, rgba(0, 0, 0, 0.07) 0px 16px 16px;
             background-color: var(--column-selector-background-color);
+            input {
+                margin-left: 26px;
+            }
+            label {
+                margin: 4px 10px;
+            }
+            .dragger {
+                display: block;
+                cursor: pointer;
+                background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiMyNDI0MjQiIGQ9Ik03IDE5di0yaDJ2MnptNCAwdi0yaDJ2MnptNCAwdi0yaDJ2MnptLTgtNHYtMmgydjJ6bTQgMHYtMmgydjJ6bTQgMHYtMmgydjJ6bS04LTRWOWgydjJ6bTQgMFY5aDJ2MnptNCAwVjloMnYyek03IDdWNWgydjJ6bTQgMFY1aDJ2MnptNCAwVjVoMnYyeiIvPjwvc3ZnPg==);
+                background-repeat: no-repeat;
+                background-position: left center;
+                background-size: 20px;
+                height: 20px;
+                width: 22px;
+            }
         }
         > div:first-child {
             padding-top: var(--column-selector-padding-top);
@@ -85,3 +101,13 @@
         opacity: 1;
     }
 }
+li.drag-sort-active {
+    background: transparent;
+    color: transparent;
+    border: 1px solid #4ca1af;
+  }
+  
+  span.drag-sort-active {
+    background: transparent;
+    color: transparent;
+  }
