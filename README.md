@@ -11,6 +11,8 @@ https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf5
 
 1.3 Added column reordering feature; JS optimisations; CSS updates; Various bug fixes
 
+1.4 Using DataModel instead of DOM; switched initially hidden input list from column numbers to names; added EnableReordering boolean to switch reorder feature on/off; fixed minor display bugs
+
 ## Application Setup
 1. Check the *Enable Style Sheet* checkbox in the application properties
 
@@ -19,64 +21,54 @@ https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf5
 
 ## Global Script Setup
 1. Create a Global Script called "ColumnDisplay"
-2. Add two input parameters to the Global Script
+2. Add input parameters below to the Global Script
    1. DataGridClass
    2. InitialHiddenColumns
+   3. EnableReordering
 3. Drag a *JavaScript* action into the script
 4. Add the Javascript below into the JavaScript code property
 ```javascript
-/* Stadium Script Version 1.3 https://github.com/stadium-software/datagrid-showhide-columns */
-let dgClassName = "." + ~.Parameters.Input.DataGridClass;
+/* Stadium Script Version 1.4 https://github.com/stadium-software/datagrid-showhide-columns */
+let inputClass = ~.Parameters.Input.DataGridClass;
+let dgClassName = "." + inputClass;
+let enableReorder = ~.Parameters.Input.EnableReordering;
+let colsParameter = ~.Parameters.Input.InitialHiddenColumns;
+let scope = this;
 let dg = document.querySelectorAll(dgClassName);
 if (dg.length == 0) {
-    dg = document.querySelector(".data-grid-container");
-    dgClassName = ".data-grid-container";
+    console.error("No control with the class '" + inputClass + "' was found");
+    return false;
 } else if (dg.length > 1) {
-    console.error("The class '" + dgClassName + "' is assigned to multiple DataGrids. DataGrids using this script must have unique classnames");
+    console.error("The class '" + inputClass + "' is assigned to multiple DataGrids. DataGrids using this script must have unique classnames");
     return false;
 } else { 
     dg = dg[0];
 }
-if (!dg) {
-    console.error("No DataGrid was found on the page");
-    return false;
-}
-let table = dg.querySelector("table");
-let colsParameter = ~.Parameters.Input.InitialHiddenColumns;
-const pathname = window.location.pathname;
+const pathname = window.location.pathname.replace("/", "");
+/*Hide columns as per cookie*/
 let hideCols = [];
 if (Array.isArray(colsParameter)) hideCols = colsParameter;
-let cookieCols = getCookie(pathname + "-" + dgClassName + "-hidden-columns");
+let cookieCols = getCookie(pathname + "-" + inputClass + "-hidden-columns");
 if (cookieCols !== null && cookieCols !== "") {
     hideCols = cookieCols.split(",");
 } else if (cookieCols == "") {
     hideCols = [];
 }
+/*Reorder columns as per cookie*/
 let arrColOrder = [];
-let cookieColOrder = getCookie(pathname + "-" + dgClassName + "-column-order");
+let cookieColOrder = getCookie(pathname + "-" + inputClass + "-column-order");
 if (cookieColOrder !== null) {
     arrColOrder = cookieColOrder.split(",");
 }
-let options = {
-        childList: true,
-        subtree: true,
-    },
-    observer = new MutationObserver(initDataGridHide);
+let arrColumnDefinitions = getDMValues(dg, "ColumnDefinitions");
+for (let i = 0; i < arrColOrder.length; i++) {
+    arrColumnDefinitions = moveItem(arrColumnDefinitions,i,getColItemIndex(arrColOrder[i]));
+}
 initDataGridHide();
 
 function initDataGridHide(){
-    if (table.querySelectorAll("tbody tr").length < 2) {
-        observer.observe(table, options);
-        return false;
-    }
-    observer.disconnect();
-    let heads = formatHeadings();
-    createDropDown(heads);
-    for (let i=0;i<hideCols.length;i++) {
-        setColumnVisibility(hideCols[i], false);
-    }
-    reorderList(arrColOrder);
-    document.querySelector(".column-display-selector-header").addEventListener("click", function(e){
+    createDropDown();
+    dg.querySelector(".column-display-selector-header").addEventListener("click", function(e){
         e.target.closest(".column-display-selector-container").classList.toggle("expand");
     });
     document.body.addEventListener("click", function(e){
@@ -88,7 +80,9 @@ function initDataGridHide(){
         }
     });
 }
-function createDropDown(arrHeads){
+
+/*DropDown*/
+function createDropDown() {
     let checkboxListContainer = document.createElement("div");
     checkboxListContainer.classList.add("column-display-selector-container");
     let dropDownHeader = document.createElement("div");
@@ -99,133 +93,68 @@ function createDropDown(arrHeads){
     checkboxListContainer.appendChild(dropDownHeader);
     let checkboxList = document.createElement("div");
     checkboxList.classList.add("control-container", "check-box-list-container", "column-display-checkboxlist", "drag-sort-enable");
-    for (let i = 0; i < arrHeads.length; i++) {
-        let labelText = arrHeads[i].label;
-        let colOrder = arrHeads[i].order;
-        let display = arrHeads[i].display;
-        let checkboxID = "id-" + colOrder;
+    let colOrder = 0;
+    if (getDMValues(dg, "HasSelectableData")) colOrder = 1;
+    for (let i = 0; i < arrColumnDefinitions.length; i++) {
+        colOrder++;
+        let labelText = arrColumnDefinitions[i].headerText;
+        if (!labelText) labelText = arrColumnDefinitions[i].name;
+        let display = arrColumnDefinitions[i].visible;
+        let checkboxID = inputClass + "-id-" + arrColumnDefinitions[i].name;
         let checkboxContainer = document.createElement("div");
         checkboxContainer.classList.add("checkbox");
         checkboxContainer.setAttribute("order", colOrder);
-        if (display) checkboxContainer.style.display = "none";
-        let checkboxDrag = document.createElement("div");
-        checkboxDrag.classList.add("dragger");
+        if (!display) checkboxContainer.style.display = "none";
+        if (enableReorder) {
+            let checkboxDrag = document.createElement("div");
+            checkboxDrag.classList.add("dragger");
+            checkboxContainer.appendChild(checkboxDrag);
+        }
         let checkbox = document.createElement("input");
         checkbox.setAttribute("type", "checkbox");
-        checkbox.checked = true;
-        checkbox.setAttribute("value", labelText);
+        if (display) checkbox.checked = true;
+        if (hideCols.indexOf(arrColumnDefinitions[i].name) > -1) {
+            checkbox.checked = false;
+            arrColumnDefinitions[i].visible = false;
+        }
+        checkbox.setAttribute("value", arrColumnDefinitions[i].name);
         checkbox.setAttribute("id", checkboxID);
         checkbox.addEventListener("change", toggleColumnDisplay);
         let checkboxLabel = document.createElement("label");
         checkboxLabel.setAttribute("for", checkboxID);
         checkboxLabel.innerText = labelText;
-        checkboxContainer.appendChild(checkboxDrag);
         checkboxContainer.appendChild(checkbox);
         checkboxContainer.appendChild(checkboxLabel);
         checkboxList.appendChild(checkboxContainer);
     }
     checkboxListContainer.appendChild(checkboxList);
-    let dgHead = document.querySelector(".data-grid-header");
+    let dgHead = dg.querySelector(".data-grid-header");
     dgHead.appendChild(checkboxListContainer);
-    (()=> {enableDragSort('drag-sort-enable');})();
-}
-function formatHeadings() {
-    let headingElements = table.querySelectorAll("thead th");
-    let headings = [];
-    for (let i = 0; i < headingElements.length; i++) {
-        let heading = {};
-        headingElements[i].setAttribute("order", i + 1);
-        heading.order = i + 1;
-        if (headingElements[i].textContent) {
-            heading.label = headingElements[i].textContent;
-        } else if (headingElements[i].querySelector("input[type=checkbox")) {
-            heading.label = "Checkboxes";
-        } else {
-            heading.label = "No Heading";
-        }
-        if (headingElements[i].style.display == "none") {
-            heading.display = "none";
-        }
-        headings.push(heading);
-    }
-    return headings;
+    if (enableReorder) (()=> {enableDragSort('drag-sort-enable');})();
 }
 function toggleColumnDisplay(e) {
     let el = e.target;
-    let o = el.parentNode.getAttribute("order");
+    let colIndex = Array.prototype.indexOf.call(el.closest(".column-display-checkboxlist").children, el.parentNode);
+    let arrColsDefs = getDMValues(dg, "ColumnDefinitions");
     if (el.checked) {
-        setColumnVisibility(o, true);
+        arrColsDefs[colIndex].visible = true;
     } else {
-        setColumnVisibility(o, false);
+        arrColsDefs[colIndex].visible = false;
     }
-}
-function setColumnVisibility(no, visible) {
-    dg.querySelector(".column-display-checkboxlist .checkbox[order='" + no + "'] input").checked = visible;
-    let th = table.querySelector("th[order='" + no + "']");
-    if (visible) {
-        th.classList.remove("hidden-column");
-    } else {
-        th.classList.add("hidden-column");
-    }
-    let colNo = Array.prototype.indexOf.call(table.querySelector("thead tr").children, th) + 1;
-    let cells = table.querySelectorAll("tbody tr td:nth-child(" + colNo + ")");
-    for (let i = 0; i < cells.length; i++) {
-        if (visible) {
-            cells[i].classList.remove("hidden-column");
-        } else {
-            cells[i].classList.add("hidden-column");
-        }
-    }
-    createCookie(pathname + "-" + dgClassName + "-hidden-columns", getHiddenColsArray(), 30);
+    setDMValues(dg, "ColumnDefinitions", arrColsDefs);
+    createCookie(pathname + "-" + inputClass + "-hidden-columns", getHiddenColsArray(), 30);
 }
 function getHiddenColsArray() {
     let hiddenCols = [];
-    let arr = table.querySelectorAll("th.hidden-column");
-    if (arr) {
-        for (let i = 0; i < arr.length; i++) {
-            hiddenCols.push(arr[i].getAttribute("order"));
-        }
+    let arr = getDMValues(dg, "ColumnDefinitions");
+    for (let i = 0; i < arr.length; i++) {
+        if (!arr[i].visible) hiddenCols.push(arr[i].name);
     }
     return hiddenCols;
 }
-function getColOrderArray() {
-    let colsOrder = [];
-    let arr = table.querySelectorAll("thead th");
-    if (arr) {
-        for (let i = 0; i < arr.length; i++) {
-            colsOrder.push(arr[i].getAttribute("order"));
-        }
-    }
-    return colsOrder;
-}
-/*Cookies*/
-function createCookie(name, value, days) {
-    let expires = "";
-    if (days) {
-        let date = new Date();
-        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-        expires = "; expires=" + date.toGMTString();
-    }
-    document.cookie = name + "=" + value + expires + "; path=/";
-}
-
-function getCookie(c_name) {
-    if (document.cookie.length > 0) {
-        let c_start = document.cookie.indexOf(c_name + "=");
-        if (c_start != -1) {
-            c_start = c_start + c_name.length + 1;
-            let c_end = document.cookie.indexOf(";", c_start);
-            if (c_end == -1) {
-                c_end = document.cookie.length;
-            }
-            return document.cookie.substring(c_start, c_end);
-        }
-    }
-    return null;
-}
 /*Reorder*/
 function enableDragSort(listClass) {
-    const sortableLists = document.getElementsByClassName(listClass);
+    const sortableLists = dg.getElementsByClassName(listClass);
     Array.prototype.map.call(sortableLists, (list) => {enableDragList(list);});
 }
 function enableDragList(list) {
@@ -254,33 +183,62 @@ function handleDrop(item) {
     reorder(elmnt);
 }
 function reorder(el) {
-    let th = dg.querySelector("thead tr th[order='" + el.getAttribute("order") + "']");
-    let fromNo = Array.prototype.indexOf.call(th.parentNode.children, th) + 1;
-    let dragSibling = el.previousSibling;
-    let toNo = 1;
-    let action = "beforebegin";
-    if (dragSibling) {
-        toNo = Array.prototype.indexOf.call(th.parentNode.children, dg.querySelector("thead tr th[order='" + dragSibling.getAttribute("order") + "']")) + 1;
-        action = "afterend";
-    }
-    let siblingTh = dg.querySelector("thead tr th:nth-child(" + toNo + ")");
-    siblingTh.insertAdjacentElement(action, th);
-    let rows = dg.querySelectorAll("tbody tr");
-    for (let i = 0; i < rows.length; i++) {
-        let moveTd = rows[i].querySelector("td:nth-child(" + fromNo + ")");
-        let siblingTd = rows[i].querySelector("td:nth-child(" + toNo + ")");
-        siblingTd.insertAdjacentElement(action, moveTd);
-    }
-    createCookie(pathname + "-" + dgClassName + "-column-order", getColOrderArray(), 30);
+    let colIndex = Array.prototype.indexOf.call(el.closest(".column-display-checkboxlist").children, el);
+    let colName = el.querySelector('input').value;
+    let arrColDefs = getDMValues(dg, "ColumnDefinitions");
+    let prev = arrColDefs.findIndex(item => item.name === colName);
+    arrColDefs = moveItem(arrColDefs, colIndex, prev);
+    createCookie(pathname + "-" + inputClass + "-column-order", arrColDefs.map(a => a.name), 30);
 }
-function reorderList(list) {
-    let parent = dg.querySelector(".column-display-checkboxlist");
-    for (let i = 0; i < list.length; i++) {
-        let el = parent.querySelector(".checkbox[order='" + list[i] + "']");
-        parent.insertBefore(el, parent.children[i]);
-        reorder(el);
+function moveItem(array, to, from) {
+    const item = array[from];
+    array.splice(from, 1);
+    array.splice(to, 0, item);
+    return array;
+}
+/*Cookies*/
+function createCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        let date = new Date();
+        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+        expires = "; expires=" + date.toGMTString();
     }
-    return list;
+    document.cookie = name + "=" + value + expires + "; path=/";
+}
+function getCookie(c_name) {
+    if (document.cookie.length > 0) {
+        let c_start = document.cookie.indexOf(c_name + "=");
+        if (c_start != -1) {
+            c_start = c_start + c_name.length + 1;
+            let c_end = document.cookie.indexOf(";", c_start);
+            if (c_end == -1) {
+                c_end = document.cookie.length;
+            }
+            return document.cookie.substring(c_start, c_end);
+        }
+    }
+    return null;
+}
+/*DataModel*/
+function getObjectName(obj) {
+    let objname = obj.id.replace("-container","");
+    do {
+        let arrNameParts = objname.split(/_(.*)/s);
+        objname = arrNameParts[1];
+    } while ((objname.match(/_/g) || []).length > 0 && !scope[`${objname}Classes`]);
+    return objname;
+}
+function getDMValues(ob, property) {
+    let obname = getObjectName(ob);
+    return scope[`${obname}${property}`];
+}
+function setDMValues(ob, property, value) {
+    let obname = getObjectName(ob);
+    scope[`${obname}${property}`] = value;
+}
+function getColItemIndex(name) { 
+    return arrColumnDefinitions.findIndex(item => item.name === name);
 }
 ```
 
@@ -293,16 +251,19 @@ function reorderList(list) {
 1. Populate your DataGrid with data ([see above](#database-connector-and-datagrid))
 2. To initialise the DataGrid with hidden columns
    1. Drag a *List* action into the script (type: Any)
-   2. Enter the column numbers you want to hide (start counting at 1 and include hidden columns)
+   2. Enter the column names you want to hide (as per the column properties shown in screenshot below)
 
 List Value Example:
 ```json
-= [2,5]
+= ["Healthy","Happy"]
 ```
+
+![Column Name Property](images/ApplicationHeadProp.png)
 
 3. Drag the *ColumnDisplay* script into the script and complete the input parameters
    1. DataGridClass: The unique class you assigned to the *DataGrid* (e.g datagrid-hide-cols)
    2. InitialHiddenColumns: Leave blank or select your *List* containing the initial hidden columns from the dropdown
+   3. EnableReordering: boolean to indicate whether users will be allowed to reorder DataGrid columns
 
 ## Applying the CSS
 The CSS below is required for the correct functioning of the module. Some elements can be [customised](#customising-css) using a variables CSS file. 

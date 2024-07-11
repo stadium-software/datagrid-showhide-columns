@@ -22,17 +22,21 @@
 
         > div {
             display: flex;
+            align-items: center;
+            justify-items: flex-start;
             padding-right: var(--column-selector-padding-right);
             padding-left: var(--column-selector-padding-left);
             border-left: 1px solid var(--column-selector-border-color);
             border-right: 1px solid var(--column-selector-border-color);
             box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 1px, rgba(0, 0, 0, 0.07) 0px 2px 2px, rgba(0, 0, 0, 0.07) 0px 4px 4px, rgba(0, 0, 0, 0.07) 0px 8px 8px, rgba(0, 0, 0, 0.07) 0px 16px 16px;
             background-color: var(--column-selector-background-color);
-            input {
-                margin-left: 26px;
+            input[type='checkbox'] {
+                margin: 0;
+                position: relative;
             }
             label {
-                margin: 4px 10px;
+                margin: 4px;
+                padding-left: 0;
             }
             .dragger {
                 display: block;
