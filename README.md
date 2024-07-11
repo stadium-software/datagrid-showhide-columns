@@ -253,6 +253,8 @@ function getColItemIndex(name) {
    1. Drag a *List* action into the script (type: Any)
    2. Enter the column names you want to hide (as per the column properties shown in screenshot below)
 
+![Hidden Columns List](images/hiddenColsList.png)
+
 List Value Example:
 ```json
 = ["Healthy","Happy"]
