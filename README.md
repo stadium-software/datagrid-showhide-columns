@@ -267,6 +267,8 @@ List Value Example:
    2. InitialHiddenColumns: Leave blank or select your *List* containing the initial hidden columns from the dropdown
    3. EnableReordering: boolean to indicate whether users will be allowed to reorder DataGrid columns
 
+![Script Properties](images/ScriptProperties.png)
+
 ## Applying the CSS
 The CSS below is required for the correct functioning of the module. Some elements can be [customised](#customising-css) using a variables CSS file. 
 
