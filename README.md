@@ -258,7 +258,7 @@ List Value Example:
 = ["Healthy","Happy"]
 ```
 
-![Column Name Property](images/ApplicationHeadProp.png)
+![Column Name Property](images/ColumnName.png)
 
 3. Drag the *ColumnDisplay* script into the script and complete the input parameters
    1. DataGridClass: The unique class you assigned to the *DataGrid* (e.g datagrid-hide-cols)
