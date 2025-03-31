@@ -306,10 +306,10 @@ List Value Example:
 
 ![Script Properties](images/ScriptProperties.png)
 
-## Applying the CSS
-The CSS below is required for the correct functioning of the module. Some elements can be [customised](#customising-css) using a variables CSS file. 
+## CSS
+The CSS below is required for the correct functioning of the module. Variables exposed in the [*column-display-selector-variables.css*](column-display-selector-variables.css) file can be [customised](#customising-css).
 
-**Stadium 6.6 or higher**
+### Before v6.12
 1. Create a folder called "CSS" inside of your Embedded Files in your application
 2. Drag the two CSS files from this repo [*column-display-selector-variables.css*](column-display-selector-variables.css) and [*column-display-selector.css*](column-display-selector.css) into that folder
 3. Paste the link tags below into the *head* property of your application
@@ -318,15 +318,28 @@ The CSS below is required for the correct functioning of the module. Some elemen
 <link rel="stylesheet" href="{EmbeddedFiles}/CSS/column-display-selector-variables.css">
 ``` 
 
-![](images/ApplicationHeadProp.png)
+### v6.12+
+1. Create a folder called "CSS" inside of your Embedded Files in your application
+2. Drag the CSS files from this repo [*column-display-selector.css*](column-display-selector.css) into that folder
+3. Paste the link tag below into the *head* property of your application
+```html
+<link rel="stylesheet" href="{EmbeddedFiles}/CSS/column-display-selector.css">
+``` 
 
-**Versions lower than 6.6**
-1. Copy the CSS from the two css files into the Stylesheet in your application
-
-## Customising CSS
+### Customising CSS
 1. Open the CSS file called [*column-display-selector-variables.css*](column-display-selector-variables.css) from this repo
 2. Adjust the variables in the *:root* element as you see fit
-3. Overwrite the file in the CSS folder of your application with the customised file
+3. Stadium 6.12+ users can comment out any variable they do **not** want to customise
+4. Add the [*column-display-selector-variables.css*](column-display-selector-variables.css) to the "CSS" folder in the EmbeddedFiles (overwrite)
+5. Paste the link tag below into the *head* property of your application (if you don't already have it there)
+```html
+<link rel="stylesheet" href="{EmbeddedFiles}/CSS/column-display-selector-variables.css">
+``` 
+6. Add the file to the "CSS" inside of your Embedded Files in your application
 
-## CSS Upgrading
-To upgrade the CSS in this module, follow the [steps outlined in this repo](https://github.com/stadium-software/samples-upgrading)
+**NOTE: Do not change any of the CSS in the 'column-display-selector.css' file**
+
+## Upgrading Stadium Repos
+Stadium Repos are not static. They change as additional features are added and bugs are fixed. Using the right method to work with Stadium Repos allows for upgrading them in a controlled manner. 
+
+How to use and update application repos is described here: [Working with Stadium Repos](https://github.com/stadium-software/samples-upgrading)
