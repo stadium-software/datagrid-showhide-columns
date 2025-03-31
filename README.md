@@ -13,6 +13,8 @@ https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf5
 
 1.4 Using DataModel instead of DOM; switched initially hidden input list from column numbers to names; added EnableReordering boolean to switch reorder feature on/off; fixed minor display bugs
 
+1.5 Added support for 'SelectableData' column; moved repo from px to rem
+
 ## Application Setup
 1. Check the *Enable Style Sheet* checkbox in the application properties
 
@@ -28,12 +30,11 @@ https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf5
 3. Drag a *JavaScript* action into the script
 4. Add the Javascript below into the JavaScript code property
 ```javascript
-/* Stadium Script Version 1.4 https://github.com/stadium-software/datagrid-showhide-columns */
+/* Stadium Script Version 1.5 https://github.com/stadium-software/datagrid-showhide-columns */
+let scope = this;
 let inputClass = ~.Parameters.Input.DataGridClass;
 let dgClassName = "." + inputClass;
 let enableReorder = ~.Parameters.Input.EnableReordering;
-let colsParameter = ~.Parameters.Input.InitialHiddenColumns;
-let scope = this;
 let dg = document.querySelectorAll(dgClassName);
 if (dg.length == 0) {
     console.error("No control with the class '" + inputClass + "' was found");
@@ -41,36 +42,41 @@ if (dg.length == 0) {
 } else if (dg.length > 1) {
     console.error("The class '" + inputClass + "' is assigned to multiple DataGrids. DataGrids using this script must have unique classnames");
     return false;
-} else { 
-    dg = dg[0];
 }
-const pathname = window.location.pathname.replace("/", "");
+dg = dg[0];
+let hasSelectableData = getDMValues(dg, "HasSelectableData");
+let hiddenCols = [];
 /*Hide columns as per cookie*/
-let hideCols = [];
-if (Array.isArray(colsParameter)) hideCols = colsParameter;
-let cookieCols = getCookie(pathname + "-" + inputClass + "-hidden-columns");
+let hideCols = ~.Parameters.Input.InitialHiddenColumns;
+let hiddenColsCookie = dg.id + "-hidden-columns";
+if (!Array.isArray(hideCols)) hideCols = [];
+let cookieCols = getCookie(hiddenColsCookie);
 if (cookieCols !== null && cookieCols !== "") {
     hideCols = cookieCols.split(",");
-} else if (cookieCols == "") {
-    hideCols = [];
 }
 /*Reorder columns as per cookie*/
-let arrColOrder = [];
-let cookieColOrder = getCookie(pathname + "-" + inputClass + "-column-order");
-if (cookieColOrder !== null) {
-    arrColOrder = cookieColOrder.split(",");
+let orderCookie = dg.id + "-column-order";
+if (enableReorder) {
+    let arrColOrder = [];
+    let cookieColOrder = getCookie(orderCookie);
+    if (cookieColOrder !== null) {
+        arrColOrder = cookieColOrder.split(",");
+    }
+    let arrColumnDefinitions = getDMValues(dg, "ColumnDefinitions");
+    for (let i = 0; i < arrColOrder.length; i++) {
+        arrColumnDefinitions = moveItem(arrColumnDefinitions,i,getColItemIndex(arrColOrder[i]));
+    }
 }
-let arrColumnDefinitions = getDMValues(dg, "ColumnDefinitions");
-for (let i = 0; i < arrColOrder.length; i++) {
-    arrColumnDefinitions = moveItem(arrColumnDefinitions,i,getColItemIndex(arrColOrder[i]));
-}
-initDataGridHide();
+initHideColumns();
 
-function initDataGridHide(){
+function initHideColumns(){
     createDropDown();
     dg.querySelector(".column-display-selector-header").addEventListener("click", function(e){
         e.target.closest(".column-display-selector-container").classList.toggle("expand");
     });
+    for (let i=0;i < hideCols.length;i++) {
+        changeColVisibility(dg.id + hideCols[i].toLowerCase(), false);
+    }
     document.body.addEventListener("click", function(e){
         if (!e.target.closest(".column-display-selector-container")) {
             let allDD = document.querySelectorAll(".column-display-selector-container");
@@ -83,74 +89,105 @@ function initDataGridHide(){
 
 /*DropDown*/
 function createDropDown() {
+    let fragment = new DocumentFragment();
     let checkboxListContainer = document.createElement("div");
     checkboxListContainer.classList.add("column-display-selector-container");
+    
     let dropDownHeader = document.createElement("div");
     dropDownHeader.classList.add("column-display-selector-header");
     let dropDownHeaderText = document.createElement("span");
     dropDownHeaderText.innerText = "Columns";
     dropDownHeader.appendChild(dropDownHeaderText);
     checkboxListContainer.appendChild(dropDownHeader);
-    let checkboxList = document.createElement("div");
-    checkboxList.classList.add("control-container", "check-box-list-container", "column-display-checkboxlist", "drag-sort-enable");
-    let colOrder = 0;
-    if (getDMValues(dg, "HasSelectableData")) colOrder = 1;
-    for (let i = 0; i < arrColumnDefinitions.length; i++) {
-        colOrder++;
-        let labelText = arrColumnDefinitions[i].headerText;
-        if (!labelText) labelText = arrColumnDefinitions[i].name;
-        let display = arrColumnDefinitions[i].visible;
-        let checkboxID = inputClass + "-id-" + arrColumnDefinitions[i].name;
-        let checkboxContainer = document.createElement("div");
-        checkboxContainer.classList.add("checkbox");
-        checkboxContainer.setAttribute("order", colOrder);
-        if (!display) checkboxContainer.style.display = "none";
-        if (enableReorder) {
-            let checkboxDrag = document.createElement("div");
-            checkboxDrag.classList.add("dragger");
-            checkboxContainer.appendChild(checkboxDrag);
-        }
-        let checkbox = document.createElement("input");
-        checkbox.setAttribute("type", "checkbox");
-        if (display) checkbox.checked = true;
-        if (hideCols.indexOf(arrColumnDefinitions[i].name) > -1) {
-            checkbox.checked = false;
-            arrColumnDefinitions[i].visible = false;
-        }
-        checkbox.setAttribute("value", arrColumnDefinitions[i].name);
-        checkbox.setAttribute("id", checkboxID);
-        checkbox.addEventListener("change", toggleColumnDisplay);
-        let checkboxLabel = document.createElement("label");
-        checkboxLabel.setAttribute("for", checkboxID);
-        checkboxLabel.innerText = labelText;
-        checkboxContainer.appendChild(checkbox);
-        checkboxContainer.appendChild(checkboxLabel);
-        checkboxList.appendChild(checkboxContainer);
+
+    let checkboxContainerInner = document.createElement("div");
+    checkboxContainerInner.classList.add("control-container", "check-box-list-container", "column-display-checkboxlist");
+
+    if (hasSelectableData) {
+        let selectCheckboxContainer = document.createElement("div");
+        let selectCheckbox = createCheckBox({"headerText":"CheckBox Column", "name":"SelectableData", "visible":true}, 0, true);
+        selectCheckboxContainer.appendChild(selectCheckbox);
+        checkboxContainerInner.appendChild(selectCheckboxContainer);
     }
-    checkboxListContainer.appendChild(checkboxList);
+    let checkboxList = document.createElement("div");
+    if (enableReorder) {
+        checkboxList.classList.add("drag-sort-enable");
+    }
+    let arrCols = [...getDMValues(dg, "ColumnDefinitions")];
+    for (let i = 0; i < arrCols.length; i++) {
+        let checkboxContainer = createCheckBox(arrCols[i], i + 1, false);
+        checkboxList.appendChild(checkboxContainer);
+        checkboxContainerInner.appendChild(checkboxList);
+    }
+    checkboxListContainer.appendChild(checkboxContainerInner);
+
     let dgHead = dg.querySelector(".data-grid-header");
-    dgHead.appendChild(checkboxListContainer);
+    fragment.appendChild(checkboxListContainer);
+    dgHead.appendChild(fragment);
+
     if (enableReorder) (()=> {enableDragSort('drag-sort-enable');})();
+}
+function createCheckBox(itemInfo, count, selectColumn){
+    let labelText = itemInfo.headerText;
+    if (!labelText) labelText = itemInfo.name;
+    let display = itemInfo.visible;
+    let checkboxContainer = document.createElement("div");
+    checkboxContainer.classList.add("checkbox");
+    checkboxContainer.setAttribute("order", count);
+    if (!display) checkboxContainer.style.display = "none";
+    if (enableReorder) {
+        let checkboxDrag = document.createElement("div");
+        if (!selectColumn) {
+            checkboxDrag.classList.add("dragger");
+        }
+        if (selectColumn) {
+            checkboxDrag.classList.add("no-dragger");
+        }
+        checkboxContainer.appendChild(checkboxDrag);
+    }
+    let checkbox = document.createElement("input");
+    checkbox.setAttribute("type", "checkbox");
+    if (display) checkbox.checked = true;
+    checkbox.setAttribute("value", itemInfo.name);
+    let checkboxID = dg.id + itemInfo.name.toLowerCase();
+    checkbox.setAttribute("id", checkboxID);
+    checkbox.addEventListener("change", toggleColumnDisplay);
+    let checkboxLabel = document.createElement("label");
+    checkboxLabel.setAttribute("for", checkboxID);
+    checkboxLabel.innerText = labelText;
+    checkboxContainer.appendChild(checkbox);
+    checkboxContainer.appendChild(checkboxLabel);
+
+    return checkboxContainer;
 }
 function toggleColumnDisplay(e) {
     let el = e.target;
-    let colIndex = Array.prototype.indexOf.call(el.closest(".column-display-checkboxlist").children, el.parentNode);
-    let arrColsDefs = getDMValues(dg, "ColumnDefinitions");
     if (el.checked) {
-        arrColsDefs[colIndex].visible = true;
+        changeColVisibility(el.id, true);
     } else {
-        arrColsDefs[colIndex].visible = false;
+        changeColVisibility(el.id, false);
     }
-    setDMValues(dg, "ColumnDefinitions", arrColsDefs);
-    createCookie(pathname + "-" + inputClass + "-hidden-columns", getHiddenColsArray(), 30);
 }
-function getHiddenColsArray() {
-    let hiddenCols = [];
-    let arr = getDMValues(dg, "ColumnDefinitions");
-    for (let i = 0; i < arr.length; i++) {
-        if (!arr[i].visible) hiddenCols.push(arr[i].name);
+function changeColVisibility(boxID, visible) {
+    let box = document.getElementById(boxID);
+    if (box) box.checked = visible;
+    let name = boxID.replace(dg.id, "").toLowerCase();
+    let arrCols = getDMValues(dg, "ColumnDefinitions");
+    for (let i = 0; i < arrCols.length; i++) {
+        if (arrCols[i].name.toLowerCase() == name) {
+            arrCols[i].visible = visible;
+        }
     }
-    return hiddenCols;
+    if (name == "selectabledata") {
+        setDMValues(dg, "HasSelectableData", visible);
+    }
+    if (!visible) {
+        hiddenCols.push(name);
+    } else {
+        const index = hiddenCols.indexOf(name);
+        if (index > -1) hiddenCols.splice(index, 1);
+    }
+    createCookie(hiddenColsCookie, hiddenCols, 30);
 }
 /*Reorder*/
 function enableDragSort(listClass) {
@@ -183,12 +220,12 @@ function handleDrop(item) {
     reorder(elmnt);
 }
 function reorder(el) {
-    let colIndex = Array.prototype.indexOf.call(el.closest(".column-display-checkboxlist").children, el);
+    let colIndex = Array.prototype.indexOf.call(el.parentNode.children, el);
     let colName = el.querySelector('input').value;
     let arrColDefs = getDMValues(dg, "ColumnDefinitions");
     let prev = arrColDefs.findIndex(item => item.name === colName);
     arrColDefs = moveItem(arrColDefs, colIndex, prev);
-    createCookie(pathname + "-" + inputClass + "-column-order", arrColDefs.map(a => a.name), 30);
+    createCookie(orderCookie, arrColDefs.map(a => a.name), 30);
 }
 function moveItem(array, to, from) {
     const item = array[from];
@@ -238,7 +275,7 @@ function setDMValues(ob, property, value) {
     scope[`${obname}${property}`] = value;
 }
 function getColItemIndex(name) { 
-    return arrColumnDefinitions.findIndex(item => item.name === name);
+    return getDMValues(dg, "ColumnDefinitions").findIndex(item => item.name === name);
 }
 ```
 

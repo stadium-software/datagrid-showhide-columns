@@ -1,12 +1,12 @@
 :root {
     --column-selector-background-color: #f5f5f5;
     --column-selector-font-color: inherit;
-    --column-selector-font-size: 14px;
-    --column-selector-height: 38px;
+    --column-selector-font-size: 1.4rem;
+    --column-selector-height: 3.8rem;
     --column-selector-border-color: #ccc;
-    --column-selector-padding-top: 6px;
-    --column-selector-padding-right: 4px;
-    --column-selector-padding-bottom: 6px;
-    --column-selector-padding-left: 4px;
+    --column-selector-padding-top: 0.6rem;
+    --column-selector-padding-right: 0.6rem;
+    --column-selector-padding-bottom: 0.6rem;
+    --column-selector-padding-left: 0.6rem;
     --column-selector-dragging-border-color: #4ca1af;
 }
