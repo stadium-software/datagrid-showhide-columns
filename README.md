@@ -294,7 +294,7 @@ function getColItemIndex(name) {
 
 List Value Example:
 ```json
-= ["Healthy","Happy"]
+= ["Healthy","Happy","SelectableData"]
 ```
 
 ![Column Name Property](images/ColumnName.png)
