@@ -2,7 +2,7 @@
 
 A repo to enable users to show/hide and o reorder columns in dataGrids.  
 
-https://github.com/stadium-software/datagrid-showhide-columns/assets/2085324/bf547320-b77f-49bd-b03b-df9fa9ca2d6f
+![](images/view.gif)
 
 # Version 
 1.1 Added logic to detect uniqueness of DataGrid class on page
